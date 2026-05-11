@@ -14,18 +14,16 @@ public class Doctor {
     private String name;
     private String specialty;
 
-    // 1. Boş Constructor (Hocanın projesindeki gibi şarttır)
     public Doctor() {
     }
 
-    // 2. Parametreli Constructor
     public Doctor(Long id, String name, String specialty) {
         this.id = id;
         this.name = name;
         this.specialty = specialty;
     }
 
-    // 3. Getter ve Setter Metotları
+    //Getter ve Setter Metotları
     public Long getId() {
         return id;
     }

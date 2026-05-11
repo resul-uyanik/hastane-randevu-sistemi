@@ -13,7 +13,7 @@ public class Patient {
     private String lastName;
 
     @Column(unique = true, nullable = false)
-    private String identityNumber; // T.C. Kimlik No
+    private String identityNumber;
 
     public Patient() {
     }

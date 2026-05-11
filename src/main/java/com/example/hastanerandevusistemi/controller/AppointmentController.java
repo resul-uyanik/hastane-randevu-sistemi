@@ -1,0 +1,33 @@
+package com.example.hastanerandevusistemi.controller;
+
+import jakarta.validation.Valid;
+import com.example.hastanerandevusistemi.dto.AppointmentRequest;
+import com.example.hastanerandevusistemi.entity.Appointment;
+import com.example.hastanerandevusistemi.service.AppointmentService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/appointments")
+public class AppointmentController {
+
+    private final AppointmentService appointmentService;
+
+    public AppointmentController(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
+    }
+
+    @GetMapping
+    public List<Appointment> getAllAppointments() {
+        return appointmentService.getAllAppointments();
+    }
+
+    @PostMapping
+    public ResponseEntity<Appointment> createAppointment(@Valid @RequestBody AppointmentRequest appointmentRequest) {
+        Appointment createdAppointment = appointmentService.createAppointment(appointmentRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdAppointment);
+    }
+}

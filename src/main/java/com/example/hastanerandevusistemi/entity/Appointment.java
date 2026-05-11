@@ -12,23 +12,19 @@ public class Appointment {
 
     private LocalDateTime appointmentDate;
 
-    // Birçok randevu bir doktora ait olabilir (Hocanın projesinden daha ileri bir seviye)
     @ManyToOne
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
-    // Birçok randevu bir hastaya ait olabilir
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
     private boolean completed;
 
-    // 1. Boş Constructor (Hocanın projesindeki standart)
     public Appointment() {
     }
 
-    // 2. Parametreli Constructor
     public Appointment(Long id, LocalDateTime appointmentDate, Doctor doctor, Patient patient, boolean completed) {
         this.id = id;
         this.appointmentDate = appointmentDate;
@@ -37,7 +33,7 @@ public class Appointment {
         this.completed = completed;
     }
 
-    // 3. Getter ve Setter Metotları (Hocanın stilinde)
+    //Getter ve Setter Metotları
     public Long getId() {
         return id;
     }

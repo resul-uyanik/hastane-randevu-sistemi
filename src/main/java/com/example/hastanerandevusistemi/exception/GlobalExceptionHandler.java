@@ -15,10 +15,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException exception) {
-
         Map<String, String> validationErrors = new HashMap<>();
 
-        // Hocanın kullandığı mantığın aynısı: Hataları döngüye alıp listeye ekler
         exception.getBindingResult().getFieldErrors().forEach(error -> {
             validationErrors.put(error.getField(), error.getDefaultMessage());
         });
@@ -30,5 +28,16 @@ public class GlobalExceptionHandler {
         responseBody.put("messages", validationErrors);
 
         return ResponseEntity.badRequest().body(responseBody);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException exception) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("timestamp", LocalDateTime.now());
+        responseBody.put("status", HttpStatus.CONFLICT.value());
+        responseBody.put("error", "Randevu Çakışması yaşandı / İşlem Hatası");
+        responseBody.put("message", exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
     }
 }
