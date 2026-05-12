@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
 
 @RestController
@@ -30,4 +31,17 @@ public class AppointmentController {
         Appointment createdAppointment = appointmentService.createAppointment(appointmentRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAppointment);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
+        appointmentService.deleteAppointment(id);
+        return ResponseEntity.ok("Randevu başarıyla iptal edildi.");
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Appointment> completeAppointment(@PathVariable Long id) {
+        Appointment updated = appointmentService.completeAppointment(id);
+        return ResponseEntity.ok(updated);
+    }
+
 }

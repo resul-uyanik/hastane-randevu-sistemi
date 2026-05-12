@@ -46,7 +46,6 @@ public class AppointmentService {
         if (exists) {
             throw new RuntimeException("Seçilen zaman dilimi dolu! Lütfen en az 15 dakika sonra deneyin.");
         }
-        // ---------------------------------
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElseThrow(() -> new RuntimeException("Doktor bulunamadı!"));
         Patient patient = patientRepository.findById(request.getPatientId()).orElseThrow(() -> new RuntimeException("Hasta bulunamadı!"));
@@ -57,6 +56,21 @@ public class AppointmentService {
         appointment.setAppointmentDate(start);
         appointment.setCompleted(false);
 
+        return appointmentRepository.save(appointment);
+    }
+
+    public void deleteAppointment(Long id) {
+        if (!appointmentRepository.existsById(id)) {
+            throw new RuntimeException("İptal edilmek istenen randevu bulunamadı!");
+        }
+        appointmentRepository.deleteById(id);
+    }
+
+    public Appointment completeAppointment(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Randevu bulunamadı!"));
+
+        appointment.setCompleted(true);
         return appointmentRepository.save(appointment);
     }
 }
