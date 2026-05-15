@@ -1,5 +1,6 @@
 package com.example.hastanerandevusistemi.controller;
 
+
 import jakarta.validation.Valid;
 import com.example.hastanerandevusistemi.dto.AppointmentRequest;
 import com.example.hastanerandevusistemi.entity.Appointment;
@@ -9,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
-
-
 import java.util.List;
 
 @RestController
