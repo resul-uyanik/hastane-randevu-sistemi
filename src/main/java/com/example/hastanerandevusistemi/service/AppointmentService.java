@@ -10,6 +10,8 @@ import com.example.hastanerandevusistemi.repository.PatientRepository;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 public class AppointmentService {
@@ -72,5 +74,12 @@ public class AppointmentService {
 
         appointment.setCompleted(true);
         return appointmentRepository.save(appointment);
+    }
+
+    public List<Appointment> getAppointmentsByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        return appointmentRepository.findByAppointmentDateBetween(startOfDay, endOfDay);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.hastanerandevusistemi.service;
 
+import com.example.hastanerandevusistemi.dto.PatientRequest;
 import com.example.hastanerandevusistemi.entity.Patient;
 import com.example.hastanerandevusistemi.repository.PatientRepository;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,21 @@ public class PatientService {
         return patientRepository.findAll();
     }
 
-    public Patient createPatient(Patient patient) {
+    public Patient createPatient(PatientRequest request) {
+        Patient patient = new Patient();
+
+        patient.setFirstName(request.getFirstName());
+        patient.setLastName(request.getLastName());
+        patient.setIdentityNumber(request.getIdentityNumber());
+
         return patientRepository.save(patient);
+    }
+
+    public List<Patient> searchPatients(String name) {
+        return patientRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
+    }
+
+    public boolean checkIfPatientExists(String idNo) {
+        return patientRepository.existsByIdentityNumber(idNo);
     }
 }

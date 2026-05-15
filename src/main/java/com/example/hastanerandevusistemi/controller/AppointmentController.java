@@ -7,6 +7,8 @@ import com.example.hastanerandevusistemi.service.AppointmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 
 import java.util.List;
@@ -42,6 +44,12 @@ public class AppointmentController {
     public ResponseEntity<Appointment> completeAppointment(@PathVariable Long id) {
         Appointment updated = appointmentService.completeAppointment(id);
         return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/date")
+    public List<Appointment> getByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return appointmentService.getAppointmentsByDate(date);
     }
 
 }
