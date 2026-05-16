@@ -1,6 +1,5 @@
 package com.example.hastanerandevusistemi.controller;
 
-
 import jakarta.validation.Valid;
 import com.example.hastanerandevusistemi.dto.AppointmentRequest;
 import com.example.hastanerandevusistemi.entity.Appointment;
@@ -27,6 +26,13 @@ public class AppointmentController {
         return appointmentService.getAllAppointments();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Appointment> getById(@PathVariable Long id) {
+        return appointmentService.getAppointmentById(id)
+                .map(appointment -> ResponseEntity.ok(appointment))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<Appointment> createAppointment(@Valid @RequestBody AppointmentRequest appointmentRequest) {
         Appointment createdAppointment = appointmentService.createAppointment(appointmentRequest);
@@ -35,14 +41,23 @@ public class AppointmentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
-        appointmentService.deleteAppointment(id);
-        return ResponseEntity.ok("Randevu başarıyla iptal edildi.");
+        boolean deleted = appointmentService.deleteAppointment(id);
+
+        if (deleted) {
+            return ResponseEntity.ok("Randevu başarıyla iptal edildi."); // 200 OK
+        }
+
+        return ResponseEntity.notFound().build(); // 404 Not Found
     }
 
     @PatchMapping("/{id}/complete")
     public ResponseEntity<Appointment> completeAppointment(@PathVariable Long id) {
         Appointment updated = appointmentService.completeAppointment(id);
-        return ResponseEntity.ok(updated);
+
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/date")
@@ -50,5 +65,4 @@ public class AppointmentController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return appointmentService.getAppointmentsByDate(date);
     }
-
 }

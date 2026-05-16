@@ -7,11 +7,14 @@ import com.example.hastanerandevusistemi.entity.Patient;
 import com.example.hastanerandevusistemi.repository.AppointmentRepository;
 import com.example.hastanerandevusistemi.repository.DoctorRepository;
 import com.example.hastanerandevusistemi.repository.PatientRepository;
-import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
-import java.util.List;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
+import com.example.hastanerandevusistemi.exception.ResourceNotFoundException;
 
 @Service
 public class AppointmentService {
@@ -20,8 +23,7 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, PatientRepository patientRepository)
-    {
+    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, PatientRepository patientRepository) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
@@ -31,26 +33,22 @@ public class AppointmentService {
         return appointmentRepository.findAll();
     }
 
-    public Appointment createAppointment(AppointmentRequest request) {
+    public Optional<Appointment> getAppointmentById(Long id) {
+        return appointmentRepository.findById(id);
+    }
 
+    public Appointment createAppointment(AppointmentRequest request) {
         LocalDateTime start = request.getAppointmentDate();
 
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Geçmiş bir tarihe randevu oluşturamazsınız!");
+        if (appointmentRepository.existsByDoctorIdAndAppointmentDate(request.getDoctorId(), start)) {
+            throw new AppointmentConflictException("Bu randevu zaman dilimi dolu! Lütfen başka bir zaman seçin.");
         }
 
-        LocalDateTime searchStart = start.minusMinutes(14).plusSeconds(1);
-        LocalDateTime searchEnd = start.plusMinutes(14).plusSeconds(59);
+        Doctor doctor = doctorRepository.findById(request.getDoctorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Doktor bulunamadı!"));
 
-        boolean exists = appointmentRepository.existsOverlappingAppointment(
-                request.getDoctorId(), searchStart, searchEnd);
-
-        if (exists) {
-            throw new RuntimeException("Seçilen zaman dilimi dolu! Lütfen en az 15 dakika sonra deneyin.");
-        }
-
-        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElseThrow(() -> new RuntimeException("Doktor bulunamadı!"));
-        Patient patient = patientRepository.findById(request.getPatientId()).orElseThrow(() -> new RuntimeException("Hasta bulunamadı!"));
+        Patient patient = patientRepository.findById(request.getPatientId())
+                .orElseThrow(() -> new ResourceNotFoundException("Hasta bulunamadı!"));
 
         Appointment appointment = new Appointment();
         appointment.setDoctor(doctor);
@@ -61,25 +59,31 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
-    public void deleteAppointment(Long id) {
-        if (!appointmentRepository.existsById(id)) {
-            throw new RuntimeException("İptal edilmek istenen randevu bulunamadı!");
+    public boolean deleteAppointment(Long id) {
+        Optional<Appointment> optionalAppointment = appointmentRepository.findById(id);
+
+        if (optionalAppointment.isPresent()) {
+            appointmentRepository.deleteById(id);
+            return true;
         }
-        appointmentRepository.deleteById(id);
+        return false;
     }
 
     public Appointment completeAppointment(Long id) {
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Randevu bulunamadı!"));
+        Optional<Appointment> optionalAppointment = appointmentRepository.findById(id);
 
-        appointment.setCompleted(true);
-        return appointmentRepository.save(appointment);
+        if (optionalAppointment.isPresent()) {
+            Appointment appointment = optionalAppointment.get();
+            appointment.setCompleted(true);
+            return appointmentRepository.save(appointment);
+        }
+
+        return null;
     }
 
     public List<Appointment> getAppointmentsByDate(LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-
         return appointmentRepository.findByAppointmentDateBetween(startOfDay, endOfDay);
     }
 }
