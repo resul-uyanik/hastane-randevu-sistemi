@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hastane Randevu Sistemi - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card-counter {
+            box-shadow: 2px 2px 10px #dadada;
+            padding: 20px 10px;
+            border-radius: 5px;
+            transition: .3s linear all;
+        }
+        .card-counter:hover{
+            box-shadow: 4px 4px 20px #dadada;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link active" href="/">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/patients">Hasta Kayıt</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/appointments">Randevular</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border">
+        <div class="container-fluid py-5 text-center">
+            <h1 class="display-5 fw-bold text-primary">Hastane Randevu Sistemine Hoş Geldiniz</h1>
+            <p class="col-md-8 fs-4 mx-auto text-muted mt-3">Doktor, Hasta ve Randevu işlemlerini sol taraftaki menüden veya aşağıdaki hızlı butonlardan yönetebilirsiniz.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <div class="card card-counter bg-white border-start border-primary border-4 p-4 text-center">
+                <h3 class="text-primary">👨‍⚕️ Doktorlar</h3>
+                <p class="text-muted">Yeni doktor ekleyin, uzmanlık alanlarını filtreleyin ve listeleyin.</p>
+                <a href="/view/doctors" class="btn btn-outline-primary btn-sm w-100 mt-2">Doktorları Yönet</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-counter bg-white border-start border-success border-4 p-4 text-center">
+                <h3 class="text-success">👥 Hastalar</h3>
+                <p class="text-muted">Hasta kayıtlarını TC kimlik no doğrulamasıyla yapın ve düzenleyin.</p>
+                <a href="/view/patients" class="btn btn-outline-success btn-sm w-100 mt-2">Hastaları Yönet</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-counter bg-white border-start border-warning border-4 p-4 text-center">
+                <h3 class="text-warning">📅 Randevular</h3>
+                <p class="text-muted">Çakışma kontrolü yüksek algoritmalı yeni randevular oluşturun.</p>
+                <a href="/view/appointments" class="btn btn-outline-warning btn-sm w-100 mt-2">Randevuları Yönet</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

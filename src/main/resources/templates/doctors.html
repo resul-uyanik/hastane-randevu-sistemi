@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRS - Doktor Yönetimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/view/doctors">Doktor Yönetimi</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/patients">Hasta Kayıt</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/appointments">Randevular</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom fw-bold text-primary">
+                    ➕ Yeni Doktor Ekle
+                </div>
+                <div class="card-body">
+                    <form id="doctorForm">
+                        <div class="mb-3">
+                            <label for="doctorName" class="form-label small fw-bold">Doktor Adı Soyadı</label>
+                            <input type="text" class="form-control" id="doctorName" placeholder="Örn: Dr. Ahmet Yılmaz" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="doctorSpecialty" class="form-label small fw-bold">Uzmanlık Alanı</label>
+                            <input type="text" class="form-control" id="doctorSpecialty" placeholder="Örn: Kardiyoloji" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom fw-bold text-success d-flex justify-content-between align-items-center">
+                    <span>👨‍⚕️ Sistemde Kayıtlı Doktorlar</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadDoctors()">🔄 Yenile</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width: 10%">ID</th>
+                                <th style="width: 50%">Adı Soyadı</th>
+                                <th style="width: 25%">Uzmanlık Alanı</th>
+                                <th class="text-end pe-3" style="width: 15%">İşlemler</th>
+                            </tr>
+                            </thead>
+                            <tbody id="doctorTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        loadDoctors();
+    });
+
+    function loadDoctors() {
+        fetch('/doctors')
+            .then(response => response.json())
+            .then(doctors => {
+                const tbody = document.getElementById('doctorTableBody');
+                tbody.innerHTML = '';
+
+                if (doctors.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Kayıtlı doktor bulunamadı.</td></tr>`;
+                    return;
+                }
+
+                doctors.forEach(doctor => {
+                    const row = `
+                        <tr>
+                            <td class="ps-3 fw-bold">${doctor.id}</td>
+                            <td>${doctor.name}</td>
+                            <td><span class="badge bg-info text-dark">${doctor.specialty}</span></td>
+                            <td class="text-end pe-3">
+                                <button class="btn btn-sm btn-danger" onclick="deleteDoctor(${doctor.id})">Sil</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(error => console.error('Doktorlar yüklenirken hata oluştu:', error));
+    }
+
+    document.getElementById('doctorForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('doctorName').value;
+        const specialty = document.getElementById('doctorSpecialty').value;
+
+        const doctorData = {
+            name: name,
+            specialty: specialty
+        };
+
+        fetch('/doctors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(doctorData)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Doktor başarıyla eklendi');
+                document.getElementById('doctorForm').reset();
+                loadDoctors();
+            } else {
+                return response.json().then(err => {
+                    // Senin GlobalExceptionHandler'dan dönen hata mesajını gösterir
+                    alert('Hata: ' + (err.messages ? JSON.stringify(err.messages) : err.message));
+                });
+            }
+        })
+        .catch(error => console.error('Ekleme işlemi sırasında hata:', error));
+    });
+
+    function deleteDoctor(id) {
+        if (confirm('Bu doktoru silmek istediğine emin misin ?')) {
+            fetch(`/doctors/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Doktor silindi!');
+                    loadDoctors();
+                } else {
+                    alert('Doktor silinemedi.');
+                }
+            })
+            .catch(error => console.error('Silme işlemi sırasında hata:', error));
+        }
+    }
+</script>
+</body>
+</html>
