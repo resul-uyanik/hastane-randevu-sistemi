@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
 import com.example.hastanerandevusistemi.exception.ResourceNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
@@ -37,6 +39,7 @@ public class AppointmentService {
         return appointmentRepository.findById(id);
     }
 
+    @Transactional
     public Appointment createAppointment(AppointmentRequest request) {
         LocalDateTime start = request.getAppointmentDate();
 
@@ -59,6 +62,7 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    @Transactional
     public boolean deleteAppointment(Long id) {
         Optional<Appointment> optionalAppointment = appointmentRepository.findById(id);
 
@@ -69,6 +73,7 @@ public class AppointmentService {
         return false;
     }
 
+    @Transactional
     public Appointment completeAppointment(Long id) {
         Optional<Appointment> optionalAppointment = appointmentRepository.findById(id);
 
@@ -85,5 +90,13 @@ public class AppointmentService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
         return appointmentRepository.findByAppointmentDateBetween(startOfDay, endOfDay);
+    }
+
+    public long countByCompleted(boolean completed) {
+        return appointmentRepository.countByCompleted(completed);
+    }
+
+    public List<Appointment> getLatestFiveAppointments() {
+        return appointmentRepository.findTop5ByOrderByIdDesc();
     }
 }

@@ -65,4 +65,14 @@ public class AppointmentController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return appointmentService.getAppointmentsByDate(date);
     }
+
+    @GetMapping("/count")
+    public long countAppointmentsByCompletedStatus(@RequestParam boolean completed) {
+        return appointmentService.countByCompleted(completed);
+    }
+
+    @GetMapping("/latest")
+    public List<Appointment> getLatestFiveAppointments() {
+        return appointmentService.getLatestFiveAppointments();
+    }
 }

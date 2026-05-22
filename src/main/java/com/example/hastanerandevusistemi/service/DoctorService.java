@@ -4,10 +4,14 @@ import com.example.hastanerandevusistemi.dto.DoctorRequest;
 import com.example.hastanerandevusistemi.entity.Doctor;
 import com.example.hastanerandevusistemi.repository.DoctorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 public class DoctorService {
     private final DoctorRepository doctorRepository;
 
@@ -19,6 +23,7 @@ public class DoctorService {
         return doctorRepository.findAll();
     }
 
+    @Transactional
     public Doctor createDoctor(DoctorRequest doctorRequest) {
         Doctor doctor = new Doctor(
                 null,
@@ -37,6 +42,7 @@ public class DoctorService {
         return doctorRepository.findById(id);
     }
 
+    @Transactional
     public Doctor updateDoctor(Long id, DoctorRequest doctorRequest) {
         Optional<Doctor> optionalDoctor = doctorRepository.findById(id);
 
@@ -56,6 +62,7 @@ public class DoctorService {
         return null;
     }
 
+    @Transactional
     public boolean deleteDoctor(Long id) {
         Optional<Doctor> optionalDoctor = doctorRepository.findById(id);
 

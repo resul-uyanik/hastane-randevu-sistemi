@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class PatientService {
     private final PatientRepository patientRepository;
 
@@ -20,6 +22,7 @@ public class PatientService {
         return patientRepository.findAll();
     }
 
+    @Transactional
     public Patient createPatient(PatientRequest request) {
         if (patientRepository.existsByIdentityNumber(request.getIdentityNumber())) {
             throw new AppointmentConflictException("Bu kimlik numarası ile kayıtlı bir hasta zaten var!");
@@ -39,6 +42,7 @@ public class PatientService {
         return patientRepository.findById(id);
     }
 
+    @Transactional
     public Patient updatePatient(Long id, PatientRequest request) {
         Optional<Patient> optionalPatient = patientRepository.findById(id);
 
@@ -65,6 +69,7 @@ public class PatientService {
         return null;
     }
 
+    @Transactional
     public boolean deletePatient(Long id) {
         Optional<Patient> optionalPatient = patientRepository.findById(id);
 

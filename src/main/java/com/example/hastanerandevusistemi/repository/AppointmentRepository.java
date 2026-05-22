@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+
     boolean existsByDoctorIdAndAppointmentDate(Long doctorId, LocalDateTime appointmentDate);
+
     List<Appointment> findByAppointmentDateBetween(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT COUNT(a) > 0 FROM Appointment a " +
@@ -17,4 +19,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     boolean existsOverlappingAppointment(@Param("doctorId") Long doctorId,
                                          @Param("searchStart") LocalDateTime searchStart,
                                          @Param("searchEnd") LocalDateTime searchEnd);
+
+    long countByCompleted(boolean completed);
+
+    List<Appointment> findTop5ByOrderByIdDesc();
 }
