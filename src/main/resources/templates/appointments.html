@@ -94,6 +94,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+  function getAuthHeader() {
+      return 'Basic ' + btoa('admin:admin123');
+  }
 
   document.addEventListener("DOMContentLoaded", function() {
       loadDoctorsToSelect();
@@ -102,7 +105,7 @@
   });
 
   function loadDoctorsToSelect() {
-      fetch('/doctors')
+      fetch('/doctors', { headers: { 'Authorization': getAuthHeader() } })
           .then(response => response.json())
           .then(doctors => {
               const select = document.getElementById('doctorSelect');
@@ -116,7 +119,7 @@
   }
 
   function loadPatientsToSelect() {
-      fetch('/patients')
+      fetch('/patients', { headers: { 'Authorization': getAuthHeader() } })
           .then(response => response.json())
           .then(patients => {
               const select = document.getElementById('patientSelect');
@@ -130,7 +133,7 @@
   }
 
   function loadAllAppointments() {
-      fetch('/appointments')
+      fetch('/appointments', { headers: { 'Authorization': getAuthHeader() } })
           .then(response => response.json())
           .then(appointments => renderAppointmentTable(appointments));
   }
@@ -159,8 +162,8 @@
           const row = `
               <tr>
                   <td class="ps-3 fw-bold">${formattedDate}</td>
-                  <td>${app.doctor.name} <small class="text-muted">(${app.doctor.specialty})</small></td>
-                  <td>${app.patient.firstName} ${app.patient.lastName}</td>
+                  <td>${app.doctor ? app.doctor.name : 'Silinmiş Doktor'} <small class="text-muted">(${app.doctor ? app.doctor.specialty : ''})</small></td>
+                  <td>${app.patient ? app.patient.firstName + ' ' + app.patient.lastName : 'Silinmiş Hasta'}</td>
                   <td>${statusBadge}</td>
                   <td class="text-end pe-3">
                       ${completeButton}
@@ -187,7 +190,10 @@
 
       fetch('/appointments', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': getAuthHeader()
+          },
           body: JSON.stringify(requestData)
       })
       .then(response => {
@@ -206,7 +212,8 @@
 
   function completeAppointment(id) {
       fetch(`/appointments/${id}/complete`, {
-          method: 'PATCH'
+          method: 'PATCH',
+          headers: { 'Authorization': getAuthHeader() }
       })
       .then(response => {
           if (response.ok) {
@@ -220,7 +227,8 @@
   function deleteAppointment(id) {
       if (confirm('Bu randevuyu iptal etmek istediğine emin misin ?')) {
           fetch(`/appointments/${id}`, {
-              method: 'DELETE'
+              method: 'DELETE',
+              headers: { 'Authorization': getAuthHeader() }
           })
           .then(response => {
               if (response.ok) {
@@ -235,11 +243,13 @@
   function filterAppointmentsByDate() {
       const dateVal = document.getElementById('filterDate').value;
       if (!dateVal) {
-          alert('Lütfen bir tarih seçin reis!');
+          alert('Lütfen bir tarih seçin reiz!');
           return;
       }
 
-      fetch(`/appointments/date?date=${dateVal}`)
+      fetch(`/appointments/date?date=${dateVal}`, {
+          headers: { 'Authorization': getAuthHeader() }
+      })
           .then(response => response.json())
           .then(appointments => renderAppointmentTable(appointments))
           .catch(error => console.error('Filtreleme hatası:', error));
