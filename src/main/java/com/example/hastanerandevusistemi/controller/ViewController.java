@@ -11,6 +11,12 @@ public class ViewController {
         return "index";
     }
 
+    // EKSİK OLAN VE HATAYA SEBEP OLAN YENİ METODUMUZ:
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+
     @GetMapping("/view/doctors")
     public String doctorsPage() {
         return "doctors";

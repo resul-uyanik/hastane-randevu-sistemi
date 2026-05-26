@@ -7,7 +7,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,13 +26,10 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**").permitAll()
 
-                        .requestMatchers("/", "/view/**").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+
 
                         .requestMatchers(HttpMethod.GET, "/appointments/**", "/doctors/**", "/patients/**").hasAnyRole("USER", "ADMIN")
 
@@ -43,9 +39,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/appointments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/appointments/**", "/doctors/**", "/patients/**").hasRole("ADMIN")
 
+
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults())
+
+                .formLogin(form -> form
+                        .loginPage("/login") // Kullanıcı giriş yapmadıysa buraya yönlenir
+                        .defaultSuccessUrl("/", true)
+                        .permitAll()
+                )
                 .build();
     }
 

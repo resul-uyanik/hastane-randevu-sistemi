@@ -75,18 +75,14 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    function getAuthHeader() {
-        return 'Basic ' + btoa('admin:admin123');
-    }
 
     document.addEventListener("DOMContentLoaded", function() {
         loadDoctors();
     });
 
     function loadDoctors() {
-        fetch('/doctors', {
-            headers: { 'Authorization': getAuthHeader() }
-        })
+
+        fetch('/doctors')
             .then(response => response.json())
             .then(doctors => {
                 const tbody = document.getElementById('doctorTableBody');
@@ -128,19 +124,26 @@
         fetch('/doctors', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': getAuthHeader()
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(doctorData)
         })
         .then(response => {
             if (response.ok) {
-                alert('Doktor başarıyla eklendi reiz.');
+                alert('Doktor başarıyla eklendi.');
                 document.getElementById('doctorForm').reset();
                 loadDoctors();
             } else {
                 return response.json().then(err => {
-                    alert('Hata: ' + (err.messages ? JSON.stringify(err.messages) : err.message));
+
+                    if (err.messages && typeof err.messages === 'object') {
+                        const errorList = Object.values(err.messages).join('\n');
+                        alert('Validasyon Hatası:\n' + errorList);
+                    } else if (err.message) {
+                        alert('Hata: ' + err.message);
+                    } else {
+                        alert('Ekleme işlemi başarısız oldu. Yetkiniz olmayabilir!');
+                    }
                 });
             }
         })
@@ -149,16 +152,17 @@
 
     function deleteDoctor(id) {
         if (confirm('Bu doktoru silmek istediğine emin misin ?')) {
+            // GÜVENLİK ADIMI: Authorization header kaldırıldı, RBAC koruması aktiftir.
             fetch(`/doctors/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': getAuthHeader() }
+                method: 'DELETE'
             })
             .then(response => {
                 if (response.ok) {
                     alert('Doktor sistemden kaldırıldı!');
                     loadDoctors();
                 } else {
-                    alert('Doktor silinemedi. Yetkiniz yetersiz olabilir.');
+                    // RBAC doğrulaması: Eğer USER rolüyle girilirse buraya düşecek.
+                    alert('Doktor silinemedi. Yetkiniz yetersiz (Sadece ADMIN silebilir)!');
                 }
             })
             .catch(error => console.error('Silme işlemi sırasında hata:', error));

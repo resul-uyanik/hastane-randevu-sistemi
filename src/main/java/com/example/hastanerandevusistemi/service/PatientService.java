@@ -6,8 +6,9 @@ import com.example.hastanerandevusistemi.repository.PatientRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
-import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
+//import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.hastanerandevusistemi.exception.DuplicateResourceException;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,7 +26,7 @@ public class PatientService {
     @Transactional
     public Patient createPatient(PatientRequest request) {
         if (patientRepository.existsByIdentityNumber(request.getIdentityNumber())) {
-            throw new AppointmentConflictException("Bu kimlik numarası ile kayıtlı bir hasta zaten var!");
+            throw new DuplicateResourceException("Bu kimlik numarası ile kayıtlı bir hasta zaten var!");
         }
 
         Patient patient = new Patient(
@@ -51,7 +52,7 @@ public class PatientService {
 
             if (request.getIdentityNumber() != null && !existingPatient.getIdentityNumber().equals(request.getIdentityNumber())) {
                 if (patientRepository.existsByIdentityNumber(request.getIdentityNumber())) {
-                    throw new AppointmentConflictException("Güncellenmek istenen kimlik numarası başka bir hastaya ait!");
+                    throw new DuplicateResourceException("Güncellenmek istenen kimlik numarası başka bir hastaya ait!");
                 }
                 existingPatient.setIdentityNumber(request.getIdentityNumber());
             }
