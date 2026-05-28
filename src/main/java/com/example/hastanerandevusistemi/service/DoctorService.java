@@ -2,21 +2,24 @@ package com.example.hastanerandevusistemi.service;
 
 import com.example.hastanerandevusistemi.dto.DoctorRequest;
 import com.example.hastanerandevusistemi.entity.Doctor;
+import com.example.hastanerandevusistemi.entity.Appointment;
 import com.example.hastanerandevusistemi.repository.DoctorRepository;
+import com.example.hastanerandevusistemi.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class DoctorService {
-    private final DoctorRepository doctorRepository;
 
-    public DoctorService(DoctorRepository doctorRepository) {
+    private final DoctorRepository doctorRepository;
+    private final AppointmentRepository appointmentRepository;
+
+    public DoctorService(DoctorRepository doctorRepository, AppointmentRepository appointmentRepository) {
         this.doctorRepository = doctorRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     public List<Doctor> getAllDoctors() {
@@ -67,6 +70,12 @@ public class DoctorService {
         Optional<Doctor> optionalDoctor = doctorRepository.findById(id);
 
         if (optionalDoctor.isPresent()) {
+
+            List<Appointment> appointments = appointmentRepository.findByDoctorId(id);
+            for (Appointment app : appointments) {
+                app.setDoctor(null);
+            }
+
             doctorRepository.deleteById(id);
             return true;
         }
@@ -74,6 +83,10 @@ public class DoctorService {
     }
 
     public List<Doctor> searchDoctors(String name) {
-        return doctorRepository.findByNameContainingIgnoreCase(name);
+
+        if (name == null || name.trim().isEmpty()) {
+            return List.of();
+        }
+        return doctorRepository.findByNameContainingIgnoreCase(name.trim());
     }
 }

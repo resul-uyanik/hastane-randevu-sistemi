@@ -27,18 +27,15 @@ public class SecurityConfig {
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
 
+                        .requestMatchers("/", "/view/**").hasAnyRole("USER", "ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/appointments/**", "/doctors/**", "/patients/**").hasAnyRole("USER", "ADMIN")
-
-
                         .requestMatchers(HttpMethod.POST, "/appointments/**", "/doctors/**", "/patients/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/doctors/**", "/patients/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/appointments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/appointments/**", "/doctors/**", "/patients/**").hasRole("ADMIN")
-
 
                         .anyRequest().authenticated()
                 )

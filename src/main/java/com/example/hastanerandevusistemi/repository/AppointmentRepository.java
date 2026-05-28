@@ -16,4 +16,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     long countByCompleted(boolean completed);
 
     List<Appointment> findTop5ByOrderByIdDesc();
+
+    List<Appointment> findByPatientId(Long patientId);
+
+    List<Appointment> findByDoctorId(Long doctorId);
 }

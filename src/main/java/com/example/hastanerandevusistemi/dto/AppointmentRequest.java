@@ -1,5 +1,6 @@
 package com.example.hastanerandevusistemi.dto;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class AppointmentRequest {
     private Long patientId;
 
     @NotNull(message = "Randevu tarihi boş bırakılamaz.Lütfen doldurunuz!!!")
+    @Future(message = "Randevu tarihi geçmiş bir zaman olamaz! Lütfen ileri bir tarih seçiniz.")
     private LocalDateTime appointmentDate;
 
     public AppointmentRequest() {

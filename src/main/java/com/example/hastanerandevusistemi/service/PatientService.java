@@ -2,25 +2,33 @@ package com.example.hastanerandevusistemi.service;
 
 import com.example.hastanerandevusistemi.dto.PatientRequest;
 import com.example.hastanerandevusistemi.entity.Patient;
+import com.example.hastanerandevusistemi.entity.Appointment;
 import com.example.hastanerandevusistemi.repository.PatientRepository;
+import com.example.hastanerandevusistemi.repository.AppointmentRepository;
+import com.example.hastanerandevusistemi.exception.DuplicateResourceException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
-//import com.example.hastanerandevusistemi.exception.AppointmentConflictException;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.hastanerandevusistemi.exception.DuplicateResourceException;
 
 @Service
 @Transactional(readOnly = true)
 public class PatientService {
-    private final PatientRepository patientRepository;
 
-    public PatientService(PatientRepository patientRepository) {
+    private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+
+    public PatientService(PatientRepository patientRepository, AppointmentRepository appointmentRepository) {
         this.patientRepository = patientRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     public List<Patient> getAllPatients() {
         return patientRepository.findAll();
+    }
+
+    public Optional<Patient> getPatientById(Long id) {
+        return patientRepository.findById(id);
     }
 
     @Transactional
@@ -37,10 +45,6 @@ public class PatientService {
         );
 
         return patientRepository.save(patient);
-    }
-
-    public Optional<Patient> getPatientById(Long id) {
-        return patientRepository.findById(id);
     }
 
     @Transactional
@@ -75,6 +79,11 @@ public class PatientService {
         Optional<Patient> optionalPatient = patientRepository.findById(id);
 
         if (optionalPatient.isPresent()) {
+            List<Appointment> appointments = appointmentRepository.findByPatientId(id);
+            for (Appointment app : appointments) {
+                app.setPatient(null);
+            }
+
             patientRepository.deleteById(id);
             return true;
         }
@@ -82,7 +91,11 @@ public class PatientService {
     }
 
     public List<Patient> searchPatients(String name) {
-        return patientRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name);
+        if (name == null || name.trim().isEmpty()) {
+            return List.of();
+        }
+        String cleanName = name.trim();
+        return patientRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(cleanName, cleanName);
     }
 
     public boolean checkIfPatientExists(String idNo) {
