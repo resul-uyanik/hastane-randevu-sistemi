@@ -152,7 +152,6 @@
 
     function deleteDoctor(id) {
         if (confirm('Bu doktoru silmek istediğine emin misin ?')) {
-            // GÜVENLİK ADIMI: Authorization header kaldırıldı, RBAC koruması aktiftir.
             fetch(`/doctors/${id}`, {
                 method: 'DELETE'
             })
@@ -161,7 +160,6 @@
                     alert('Doktor sistemden kaldırıldı!');
                     loadDoctors();
                 } else {
-                    // RBAC doğrulaması: Eğer USER rolüyle girilirse buraya düşecek.
                     alert('Doktor silinemedi. Yetkiniz yetersiz (Sadece ADMIN silebilir)!');
                 }
             })

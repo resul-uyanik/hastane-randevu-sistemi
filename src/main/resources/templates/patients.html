@@ -150,7 +150,7 @@
       })
       .then(response => {
           if (response.ok) {
-              alert('Hasta başarıyla kayıt edildi reiz.');
+              alert('Hasta başarıyla kayıt edildi.');
               document.getElementById('patientForm').reset();
               loadPatients();
           } else {
@@ -179,7 +179,6 @@
                   alert('Hasta kaydı başarıyla silindi.');
                   loadPatients();
               } else {
-                  // RBAC doğrulaması uyarısı
                   alert('Hasta kaydı silinemedi. Yetkiniz yetersiz (Sadece ADMIN silebilir)!');
               }
           })

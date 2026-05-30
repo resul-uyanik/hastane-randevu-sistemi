@@ -11,7 +11,6 @@ public class ViewController {
         return "index";
     }
 
-    // EKSİK OLAN VE HATAYA SEBEP OLAN YENİ METODUMUZ:
     @GetMapping("/login")
     public String loginPage() {
         return "login";

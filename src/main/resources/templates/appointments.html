@@ -199,7 +199,6 @@
               loadAllAppointments();
           } else {
               return response.json().then(err => {
-                  // MİMARİ ADIM: Backend validasyon hatalarını listeler
                   if (err.messages && typeof err.messages === 'object') {
                       const errorList = Object.values(err.messages).join('\n');
                       alert('Validasyon Hatası:\n' + errorList);

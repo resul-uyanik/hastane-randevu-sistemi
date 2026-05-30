@@ -44,10 +44,10 @@ public class AppointmentController {
         boolean deleted = appointmentService.deleteAppointment(id);
 
         if (deleted) {
-            return ResponseEntity.ok("Randevu başarıyla iptal edildi."); // 200 OK
+            return ResponseEntity.ok("Randevu başarıyla iptal edildi.");
         }
 
-        return ResponseEntity.notFound().build(); // 404 Not Found
+        return ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/{id}/complete")
