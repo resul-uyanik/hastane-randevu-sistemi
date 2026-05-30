@@ -34,11 +34,6 @@ public class PatientController {
         return patientService.searchPatients(name);
     }
 
-    @GetMapping("/exists/{idNo}")
-    public boolean exists(@PathVariable String idNo) {
-        return patientService.checkIfPatientExists(idNo);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Patient> getById(@PathVariable Long id) {
         return patientService.getPatientById(id)

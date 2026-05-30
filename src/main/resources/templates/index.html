@@ -24,54 +24,127 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle=\"collapse\" data-bs-target=\"#navbarNav\">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
+        <div class="collapse navbar-collapse" id=\"navbarNav\">
+            <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link active" href="/">Ana Sayfa</a></li>
                 <li class="nav-item"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
                 <li class="nav-item"><a class="nav-link" href="/view/patients">Hasta Kayıt</a></li>
                 <li class="nav-item"><a class="nav-link" href="/view/appointments">Randevular</a></li>
-                <li class="nav-item ms-lg-3">
-                    <a href="/logout" class="btn btn-sm btn-danger fw-bold text-white px-3">🚪 Çıkış Yap</a>
-                </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-5">
-    <div class="text-center p-4 bg-white rounded shadow-sm mb-4">
-        <h1 class="display-5 text-primary fw-bold">Hastane Randevu Sistemi</h1>
-        <p class="lead text-muted">Güvenlik mimarisi ve gelişmiş çakışma algoritmalarıyla optimize edilmiş yönetim paneli.</p>
-    </div>
-
+<div class="container mt-4">
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card card-counter bg-white border-start border-primary border-4 p-4 text-center">
                 <h3 class="text-primary">👨‍⚕️ Doktorlar</h3>
-                <p class="text-muted">Yeni doktor ekleyin, uzmanlık alanlarını filtreleyin ve listeleyin.</p>
+                <p class="text-muted">Sistemdeki doktorları yönetin.</p>
                 <a href="/view/doctors" class="btn btn-outline-primary btn-sm w-100 mt-2">Doktorları Yönet</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card card-counter bg-white border-start border-success border-4 p-4 text-center">
-                <h3 class="text-success">👥 Hastalar</h3>
-                <p class="text-muted">Hasta kayıtlarını TC kimlik no doğrulamasıyla yapın ve düzenleyin.</p>
-                <a href="/view/patients" class="btn btn-outline-success btn-sm w-100 mt-2">Hastaları Yönet</a>
+                <h3 class="text-success">👥 Aktif Randevular</h3>
+                <h2 id="activeCount" class="fw-bold my-2">-</h2>
+                <p class="text-muted">Bekleyen randevu sayısı</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card card-counter bg-white border-start border-warning border-4 p-4 text-center">
-                <h3 class="text-warning">📅 Randevular</h3>
-                <p class="text-muted">Çakışma kontrolü yüksek algoritmalı yeni randevular oluşturun.</p>
-                <a href="/view/appointments" class="btn btn-outline-warning btn-sm w-100 mt-2">Randevuları Yönet</a>
+                <h3 class="text-warning">✅ Tamamlananlar</h3>
+                <h2 id="completedCount" class="fw-bold my-2">-</h2>
+                <p class="text-muted">Tamamlanan randevu sayısı</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm p-4 bg-white">
+                <h4 class="text-secondary fw-bold mb-3">🔔 Son Alınan 5 Randevu</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tarih & Saat</th>
+                            <th>Doktor</th>
+                            <th>Hasta</th>
+                            <th>Durum</th>
+                        </tr>
+                        </thead>
+                        <tbody id="latestAppointmentsTable">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Veriler yükleniyor...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('/appointments/count?completed=false')
+            .then(res => res.json())
+            .then(count => {
+                document.getElementById('activeCount').textContent = count;
+            })
+            .catch(err => console.error("Aktif sayı hatası:", err));
+
+        fetch('/appointments/count?completed=true')
+            .then(res => res.json())
+            .then(count => {
+                document.getElementById('completedCount').textContent = count;
+            })
+            .catch(err => console.error("Tamamlanan sayı hatası:", err));
+
+        fetch('/appointments/latest')
+            .then(res => res.json())
+            .then(appointments => {
+                const tbody = document.getElementById('latestAppointmentsTable');
+                tbody.innerHTML = ''; // Temizle
+
+                if (appointments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Henüz randevu bulunmuyor.</td></tr>`;
+                    return;
+                }
+
+                appointments.forEach(app => {
+                    const date = new Date(app.appointmentDate);
+                    const formattedDate = date.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+
+                    const doctorName = app.doctor ? app.doctor.name : `<span class="text-danger">Silinmiş Doktor</span>`;
+                    const patientName = app.patient ? `${app.patient.firstName} ${app.patient.lastName}` : `<span class="text-danger">Silinmiş Hasta</span>`;
+
+                    const statusBadge = app.completed
+                        ? `<span class="badge bg-success">Tamamlandı</span>`
+                        : `<span class="badge bg-warning text-dark">Aktif</span>`;
+
+                    const row = `
+                        <tr>
+                            <td><strong>#${app.id}</strong></td>
+                            <td>${formattedDate}</td>
+                            <td>${doctorName}</td>
+                            <td>${patientName}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(err => {
+                console.error("Son 5 randevu hatası:", err);
+                document.getElementById('latestAppointmentsTable').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Veriler yüklenirken yetki hatası oluştu!</td></tr>`;
+            });
+    });
+</script>
 </body>
 </html>

@@ -65,9 +65,4 @@ public class DoctorController {
     public List<Doctor> search(@RequestParam String name) {
         return doctorService.searchDoctors(name);
     }
-
-    @GetMapping("/exists/{id}")
-    public boolean exists(@PathVariable Long id) {
-        return doctorService.getDoctorById(id).isPresent();
-    }
 }
