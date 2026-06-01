@@ -3,7 +3,6 @@
 Bu proje, Spring Boot ve Katmanlı Mimari prensipleri kullanılarak geliştirilmiş, Role-Based Access Control (RBAC) güvenlik altyapısına sahip bir **Hastane Randevu Sistemi** otomasyonudur.
 
 ## 🌟 Öne Çıkan Özellikler
-
 * **Soft Delete (Güvenli Silme) & Arşivleme:** Doktor, hasta veya randevu kayıtları veritabanından fiziksel olarak silinmez. Bunun yerine `@SQLDelete` kullanılarak `is_active=false` durumuna çekilir ve sistemdeki **Arşiv** sekmesinden geçmişe dönük iptal/silinme kayıtları olarak filtrelenebilir.
 * **Rol Bazlı Yetkilendirme (RBAC):** Admin ve User rolleri ile endpoint ve arayüz güvenliği sağlanır.
 * **Dinamik Randevu Çakışma Kontrolü:** Aynı doktora aynı zaman diliminde (30 dakikalık periyotlar) birden fazla randevu verilmesini engelleyen iş mantığı bulunur.
