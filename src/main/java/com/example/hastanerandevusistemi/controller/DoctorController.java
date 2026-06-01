@@ -65,4 +65,14 @@ public class DoctorController {
     public List<Doctor> search(@RequestParam String name) {
         return doctorService.searchDoctors(name);
     }
+
+    @GetMapping("/deleted")
+    public List<Doctor> getDeleted() {
+        return doctorService.getDeletedDoctors();
+    }
+
+    @GetMapping("/deleted/search")
+    public List<Doctor> searchDeleted(@RequestParam String name) {
+        return doctorService.searchDeletedDoctors(name);
+    }
 }

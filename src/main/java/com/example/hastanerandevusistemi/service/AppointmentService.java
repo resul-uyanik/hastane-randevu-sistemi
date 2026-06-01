@@ -107,4 +107,14 @@ public class AppointmentService {
     public List<Appointment> getLatestFiveAppointments() {
         return appointmentRepository.findTop5ByOrderByIdDesc();
     }
+
+    public List<Appointment> getDeletedAppointments() {
+        return appointmentRepository.findDeletedAppointments();
+    }
+
+    public List<Appointment> searchDeletedAppointmentsByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        return appointmentRepository.findDeletedAppointmentsByDate(startOfDay, endOfDay);
+    }
 }

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRS - Arşiv & Silinen Kayıtlar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/patients">Hasta Kayıt</a></li>
+                <li class="nav-item"><a class="nav-link" href="/view/appointments">Randevular</a></li>
+                <li class="nav-item"><a class="nav-link active fw-bold text-warning" href="/view/archive">🗑️ Arşiv</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <h3 class="fw-bold text-secondary mb-1">🗑️ Sistem Arşivi</h3>
+            <p class="text-muted small">Doktor, Hasta ve iptal edilen Randevu kayıtlarının geçmişi.</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="archiveTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#deletedDoctors" type="button" role="tab">👨‍⚕️ Silinen Doktorlar</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="patients-tab" data-bs-toggle="tab" data-bs-target="#deletedPatients" type="button" role="tab">👥 Silinen Hastalar</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#deletedAppointments" type="button" role="tab">📅 İptal Edilen Randevular</button>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white p-3 border border-top-0 rounded-bottom shadow-sm" id="archiveTabsContent">
+
+        <div class="tab-pane fade show active" id="deletedDoctors" role="tabpanel">
+            <div class="card shadow-sm border-0 mb-3 bg-light">
+                <div class="card-body py-2">
+                    <div class="input-group">
+                        <input type="text" id="doctorSearchInput" class="form-control" placeholder="Silinen doktor ismine göre ara...">
+                        <button class="btn btn-primary" onclick="searchDeletedDoctors()">🔍 Ara</button>
+                        <button class="btn btn-outline-secondary" onclick="clearDoctorSearch()">Temizle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Adı Soyadı</th>
+                        <th>Uzmanlık Alanı</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deletedDoctorsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="deletedPatients" role="tabpanel">
+            <div class="card shadow-sm border-0 mb-3 bg-light">
+                <div class="card-body py-2">
+                    <div class="input-group">
+                        <input type="text" id="patientSearchInput" class="form-control" placeholder="Silinen hasta adına veya soyadına göre ara...">
+                        <button class="btn btn-primary" onclick="searchDeletedPatients()">🔍 Ara</button>
+                        <button class="btn btn-outline-secondary" onclick="clearPatientSearch()">Temizle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>T.C. Kimlik No</th>
+                        <th>Adı Soyadı</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deletedPatientsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="deletedAppointments" role="tabpanel">
+            <div class="card shadow-sm border-0 mb-3 bg-light">
+                <div class="card-body py-2">
+                    <div class="input-group">
+                        <span class="input-group-text fw-bold text-secondary">Tarihe Göre Filtrele:</span>
+                        <input type="date" id="appointmentSearchDate" class="form-control">
+                        <button class="btn btn-primary" onclick="searchDeletedAppointments()">🔍 Filtrele</button>
+                        <button class="btn btn-outline-secondary" onclick="clearAppointmentSearch()">Temizle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Tarih / Saat</th>
+                        <th>👨‍⚕️ Doktor</th>
+                        <th>👥 Hasta</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody id="deletedAppointmentsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        loadDeletedDoctors();
+        loadDeletedPatients();
+        loadDeletedAppointments();
+    });
+
+    function loadDeletedDoctors() {
+        fetch('/doctors/deleted')
+            .then(response => response.json())
+            .then(doctors => renderDoctorsTable(doctors));
+    }
+
+    function renderDoctorsTable(doctors) {
+        const tbody = document.getElementById('deletedDoctorsTableBody');
+        tbody.innerHTML = '';
+        if (doctors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Arşivde uygun doktor kaydı bulunamadı.</td></tr>`;
+            return;
+        }
+        doctors.forEach(doctor => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">#${doctor.id}</td>
+                    <td>${doctor.name}</td>
+                    <td><span class="badge bg-info text-dark">${doctor.specialty}</span></td>
+                    <td><span class="badge bg-danger">Pasif (Silindi)</span></td>
+                </tr>`;
+        });
+    }
+
+    function searchDeletedDoctors() {
+        const query = document.getElementById('doctorSearchInput').value.trim();
+        if (!query) {
+            loadDeletedDoctors();
+            return;
+        }
+        fetch(`/doctors/deleted/search?name=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(doctors => renderDoctorsTable(doctors))
+            .catch(err => console.error(err));
+    }
+
+    function clearDoctorSearch() {
+        document.getElementById('doctorSearchInput').value = '';
+        loadDeletedDoctors();
+    }
+
+    function loadDeletedPatients() {
+        fetch('/patients/deleted')
+            .then(response => response.json())
+            .then(patients => renderPatientsTable(patients));
+    }
+
+    function renderPatientsTable(patients) {
+        const tbody = document.getElementById('deletedPatientsTableBody');
+        tbody.innerHTML = '';
+        if (patients.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Arşivde uygun hasta kaydı bulunamadı.</td></tr>`;
+            return;
+        }
+        patients.forEach(patient => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">#${patient.id}</td>
+                    <td><code>${patient.identityNumber}</code></td>
+                    <td>${patient.firstName} ${patient.lastName}</td>
+                    <td><span class="badge bg-danger">Pasif (Silindi)</span></td>
+                </tr>`;
+        });
+    }
+
+    function searchDeletedPatients() {
+        const query = document.getElementById('patientSearchInput').value.trim();
+        if (!query) {
+            loadDeletedPatients();
+            return;
+        }
+        fetch(`/patients/deleted/search?name=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(patients => renderPatientsTable(patients))
+            .catch(err => console.error(err));
+    }
+
+    function clearPatientSearch() {
+        document.getElementById('patientSearchInput').value = '';
+        loadDeletedPatients();
+    }
+
+    function loadDeletedAppointments() {
+        fetch('/appointments/deleted')
+            .then(response => response.json())
+            .then(appointments => {
+                const tbody = document.getElementById('deletedAppointmentsTableBody');
+                tbody.innerHTML = '';
+                if (appointments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Arşivde iptal edilmiş randevu yok.</td></tr>`;
+                    return;
+                }
+                appointments.forEach(app => {
+                    const date = new Date(app.appointmentDate);
+                    const formattedDate = date.toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
+                    const doctorName = app.doctor ? app.doctor.name : '<span class="text-muted">Silinmiş Doktor</span>';
+                    const patientName = app.patient ? `${app.patient.firstName} ${app.patient.lastName}` : '<span class="text-muted">Silinmiş Hasta</span>';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold">${formattedDate}</td>
+                            <td>${doctorName}</td>
+                            <td>${patientName}</td>
+                            <td><span class="badge bg-secondary">İptal Edildi</span></td>
+                        </tr>`;
+                });
+            });
+    }
+
+    function searchDeletedAppointments() {
+        const dateVal = document.getElementById('appointmentSearchDate').value;
+        if (!dateVal) {
+            alert('Lütfen arama yapmak için bir tarih seçin!');
+            loadDeletedAppointments();
+            return;
+        }
+
+        fetch(`/appointments/deleted/date?date=${dateVal}`)
+            .then(response => response.json())
+            .then(appointments => {
+                const tbody = document.getElementById('deletedAppointmentsTableBody');
+                tbody.innerHTML = '';
+
+                if (appointments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-3">Bu tarihte iptal edilmiş randevu bulunamadı.</td></tr>`;
+                    return;
+                }
+
+                appointments.forEach(app => {
+                    const date = new Date(app.appointmentDate);
+                    const formattedDate = date.toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
+                    const doctorName = app.doctor ? app.doctor.name : '<span class="text-muted">Silinmiş Doktor</span>';
+                    const patientName = app.patient ? `${app.patient.firstName} ${app.patient.lastName}` : '<span class="text-muted">Silinmiş Hasta</span>';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold">${formattedDate}</td>
+                            <td>${doctorName}</td>
+                            <td>${patientName}</td>
+                            <td><span class="badge bg-secondary">İptal Edildi</span></td>
+                        </tr>`;
+                });
+            })
+            .catch(err => console.error(err));
+    }
+
+    function clearAppointmentSearch() {
+        document.getElementById('appointmentSearchDate').value = '';
+        loadDeletedAppointments();
+    }
+</script>
+</body>
+</html>

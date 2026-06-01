@@ -2,8 +2,12 @@ package com.example.hastanerandevusistemi.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
+@SQLDelete(sql = "UPDATE appointment SET is_active = false WHERE id = ?")
+@SQLRestriction("is_active = true")
 public class Appointment {
 
     @Id
@@ -21,6 +25,9 @@ public class Appointment {
     private Patient patient;
 
     private boolean completed;
+
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     public Appointment() {
     }
@@ -73,4 +80,8 @@ public class Appointment {
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
+
+    public boolean isActive() { return isActive; }
+
+    public void setActive(boolean active) { isActive = active; }
 }

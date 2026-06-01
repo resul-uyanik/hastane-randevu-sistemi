@@ -62,4 +62,14 @@ public class PatientController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/deleted")
+    public List<Patient> getDeleted() {
+        return patientService.getDeletedPatients();
+    }
+
+    @GetMapping("/deleted/search")
+    public List<Patient> searchDeleted(@RequestParam String name) {
+        return patientService.searchDeletedPatients(name);
+    }
 }

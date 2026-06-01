@@ -70,12 +70,6 @@ public class DoctorService {
         Optional<Doctor> optionalDoctor = doctorRepository.findById(id);
 
         if (optionalDoctor.isPresent()) {
-
-            List<Appointment> appointments = appointmentRepository.findByDoctorId(id);
-            for (Appointment app : appointments) {
-                app.setDoctor(null);
-            }
-
             doctorRepository.deleteById(id);
             return true;
         }
@@ -88,5 +82,16 @@ public class DoctorService {
             return List.of();
         }
         return doctorRepository.findByNameContainingIgnoreCase(name.trim());
+    }
+
+    public List<Doctor> getDeletedDoctors() {
+        return doctorRepository.findDeletedDoctors();
+    }
+
+    public List<Doctor> searchDeletedDoctors(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return doctorRepository.findDeletedDoctors();
+        }
+        return doctorRepository.searchDeletedDoctors(name.trim());
     }
 }

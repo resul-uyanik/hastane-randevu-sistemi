@@ -1,8 +1,13 @@
 package com.example.hastanerandevusistemi.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
+
+@SQLDelete(sql = "UPDATE patient SET is_active = false WHERE id = ?")
+@SQLRestriction("is_active = true")
 public class Patient {
 
     @Id
@@ -14,6 +19,9 @@ public class Patient {
 
     @Column(unique = true, nullable = false)
     private String identityNumber;
+
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     public Patient() {
     }
@@ -56,4 +64,8 @@ public class Patient {
     public void setIdentityNumber(String identityNumber) {
         this.identityNumber = identityNumber;
     }
+
+    public boolean isActive() { return isActive; }
+
+    public void setActive(boolean active) { isActive = active; }
 }

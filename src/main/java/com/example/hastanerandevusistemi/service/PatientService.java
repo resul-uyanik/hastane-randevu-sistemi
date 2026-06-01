@@ -79,11 +79,6 @@ public class PatientService {
         Optional<Patient> optionalPatient = patientRepository.findById(id);
 
         if (optionalPatient.isPresent()) {
-            List<Appointment> appointments = appointmentRepository.findByPatientId(id);
-            for (Appointment app : appointments) {
-                app.setPatient(null);
-            }
-
             patientRepository.deleteById(id);
             return true;
         }
@@ -100,5 +95,16 @@ public class PatientService {
 
     public boolean checkIfPatientExists(String idNo) {
         return patientRepository.existsByIdentityNumber(idNo);
+    }
+
+    public List<Patient> getDeletedPatients() {
+        return patientRepository.findDeletedPatients();
+    }
+
+    public List<Patient> searchDeletedPatients(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return patientRepository.findDeletedPatients();
+        }
+        return patientRepository.searchDeletedPatients(name.trim());
     }
 }

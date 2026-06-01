@@ -4,8 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
+
+@SQLDelete(sql = "UPDATE doctor SET is_active = false WHERE id = ?")
+@SQLRestriction("is_active = true")
 public class Doctor {
 
     @Id
@@ -13,6 +19,9 @@ public class Doctor {
     private Long id;
     private String name;
     private String specialty;
+
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     public Doctor() {
     }
@@ -47,4 +56,8 @@ public class Doctor {
     public void setSpecialty(String specialty) {
         this.specialty = specialty;
     }
+
+    public boolean isActive() { return isActive; }
+
+    public void setActive(boolean active) { isActive = active; }
 }

@@ -30,4 +30,7 @@ public class ViewController {
     public String appointmentsPage() {
         return "appointments";
     }
+
+    @GetMapping("/view/archive")
+    public String archivePage() { return "archive"; }
 }

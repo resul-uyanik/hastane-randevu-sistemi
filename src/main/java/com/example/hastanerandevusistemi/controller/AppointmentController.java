@@ -75,4 +75,15 @@ public class AppointmentController {
     public List<Appointment> getLatestFiveAppointments() {
         return appointmentService.getLatestFiveAppointments();
     }
+
+    @GetMapping("/deleted")
+    public List<Appointment> getDeleted() {
+        return appointmentService.getDeletedAppointments();
+    }
+
+    @GetMapping("/deleted/date")
+    public List<Appointment> searchDeletedByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return appointmentService.searchDeletedAppointmentsByDate(date);
+    }
 }
