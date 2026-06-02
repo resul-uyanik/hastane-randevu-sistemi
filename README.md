@@ -27,8 +27,8 @@ Proje, hiyerarşik paket düzenine ve gevşek bağlılık (Loose Coupling) ilkes
 
 ## 🔒 Güvenlik Kontrolleri (RBAC)
 Sistemde iki farklı rol tanımlanmıştır: `USER` ve `ADMIN`. 
-* **USER:** Sadece sistemi ve kayıtları görüntüleyebilir (`GET` istekleri).
-* **ADMIN:** Randevu oluşturma, doktor/hasta ekleme, güncelleme ve silme yetkilerine sahiptir (`POST`, `PUT`, `PATCH`, `DELETE`).
+* **👨‍⚕️ ADMIN (Yönetici):** Sistemdeki her alana tam yetkiyle erişebilir. Ana Sayfa (Dashboard), Doktor Yönetimi ve Arşiv sekmelerini sadece bu rol görebilir. Doktor ekleme, güncelleme ve silme (CUD) işlemleri yalnızca yetkili Admin tarafından yapılabilir.
+* **👥 USER (Standart Kullanıcı):** Sadece *Hasta Kayıt* ve *Randevular* sayfalarına erişebilir. Yeni hasta ekleyebilir, güncelleyebilir veya silebilir. Aynı şekilde randevu oluşturma, düzenleme, iptal etme ve tamamlama yetkilerine sahiptir. Dashboard, Arşiv veya Doktor yönetimi sayfalarına erişemez.
 
 ## 🛠️ Kurulum ve Çalıştırma Rehberi
 
