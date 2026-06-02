@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +10,16 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
+    <a class="navbar-brand fw-bold" href="#">🏥 HRS Otomasyonu</a>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
-        <li class="nav-item"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/">Ana Sayfa</a></li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+
         <li class="nav-item"><a class="nav-link active" href="/view/patients">Hasta Kayıt</a></li>
         <li class="nav-item"><a class="nav-link" href="/view/appointments">Randevular</a></li>
-        <li class="nav-item"><a class="nav-link" href="/view/archive">🗑️ Arşiv</a></li></ul>
+
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/view/archive">🗑️ Arşiv</a></li>
       </ul>
     </div>
   </div>
@@ -73,8 +75,8 @@
               <tr>
                 <th class="ps-3" style="width: 10%">ID</th>
                 <th style="width: 30%">T.C. Kimlik No</th>
-                <th style="width: 45%">Adı Soyadı</th>
-                <th class="text-end pe-3" style="width: 15%">İşlemler</th>
+                <th style="width: 40%">Adı Soyadı</th>
+                <th class="text-end pe-3" style="width: 20%">İşlemler</th>
               </tr>
               </thead>
               <tbody id="patientTableBody">
@@ -87,16 +89,48 @@
   </div>
 </div>
 
+<div class="modal fade" id="updatePatientModal" tabindex="-1" aria-labelledby="updatePatientModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold" id="updatePatientModalLabel">✏️ Hasta Bilgilerini Güncelle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="updatePatientForm">
+          <input type="hidden" id="updatePatientId">
+          <div class="mb-3">
+            <label for="updateIdentityNumber" class="form-label small fw-bold">T.C. Kimlik No</label>
+            <input type="text" class="form-control" id="updateIdentityNumber" maxlength="11" required>
+          </div>
+          <div class="mb-3">
+            <label for="updateFirstName" class="form-label small fw-bold">Hasta Adı</label>
+            <input type="text" class="form-control" id="updateFirstName" required>
+          </div>
+          <div class="mb-3">
+            <label for="updateLastName" class="form-label small fw-bold">Hasta Soyadı</label>
+            <input type="text" class="form-control" id="updateLastName" required>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-warning text-dark fw-bold">Değişiklikleri Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+  let updateModal;
 
   document.addEventListener("DOMContentLoaded", function() {
+      updateModal = new bootstrap.Modal(document.getElementById('updatePatientModal'));
       loadPatients();
   });
 
   function loadPatients() {
-
       fetch('/patients')
           .then(response => response.json())
           .then(patients => {
@@ -115,12 +149,17 @@
       }
 
       patients.forEach(patient => {
+          // İsimlerde geçebilecek tırnak işaretlerine karşı güvenlik önlemi
+          const safeFirstName = patient.firstName.replace(/'/g, "\\'");
+          const safeLastName = patient.lastName.replace(/'/g, "\\'");
+
           const row = `
               <tr>
                   <td class="ps-3 fw-bold">${patient.id}</td>
                   <td><code>${patient.identityNumber}</code></td>
                   <td>${patient.firstName} ${patient.lastName}</td>
                   <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-warning me-1" onclick="openUpdateModal(${patient.id}, '${patient.identityNumber}', '${safeFirstName}', '${safeLastName}')">Düzenle</button>
                       <button class="btn btn-sm btn-danger" onclick="deletePatient(${patient.id})">Sil</button>
                   </td>
               </tr>
@@ -144,9 +183,7 @@
 
       fetch('/patients', {
           method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(patientData)
       })
       .then(response => {
@@ -159,15 +196,61 @@
                   if (err.messages && typeof err.messages === 'object') {
                       alert('Validasyon Hatası:\n' + Object.values(err.messages).join('\n'));
                   } else if (err.message) {
-
                       alert('Hata: ' + err.message);
                   } else {
-                      alert('Kayıt sırasında bir hata oluştu. Yetkiniz (ADMIN) bulunmuyor olabilir!');
+                      alert('Kayıt sırasında bir hata oluştu!');
                   }
               });
           }
       })
       .catch(error => console.error('Ekleme hatası:', error));
+  });
+
+  function openUpdateModal(id, tc, firstName, lastName) {
+      document.getElementById('updatePatientId').value = id;
+      document.getElementById('updateIdentityNumber').value = tc;
+      document.getElementById('updateFirstName').value = firstName;
+      document.getElementById('updateLastName').value = lastName;
+      updateModal.show();
+  }
+
+  document.getElementById('updatePatientForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('updatePatientId').value;
+      const tc = document.getElementById('updateIdentityNumber').value;
+      const firstName = document.getElementById('updateFirstName').value;
+      const lastName = document.getElementById('updateLastName').value;
+
+      const updateData = {
+          identityNumber: tc,
+          firstName: firstName,
+          lastName: lastName
+      };
+
+      fetch(`/patients/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updateData)
+      })
+      .then(response => {
+          if (response.ok) {
+              alert('Hasta bilgileri başarıyla güncellendi.');
+              updateModal.hide();
+              loadPatients();
+          } else {
+              return response.json().then(err => {
+                  if (err.messages && typeof err.messages === 'object') {
+                      alert('Validasyon Hatası:\n' + Object.values(err.messages).join('\n'));
+                  } else if (err.message) {
+                      alert('Hata: ' + err.message);
+                  } else {
+                      alert('Güncelleme işlemi başarısız oldu!');
+                  }
+              });
+          }
+      })
+      .catch(error => console.error('Güncelleme sırasında hata:', error));
   });
 
   function deletePatient(id) {
@@ -180,7 +263,7 @@
                   alert('Hasta kaydı başarıyla silindi.');
                   loadPatients();
               } else {
-                  alert('Hasta kaydı silinemedi. Yetkiniz yetersiz (Sadece ADMIN silebilir)!');
+                  alert('Hasta kaydı silinemedi veya sistemde bir hata oluştu!');
               }
           })
           .catch(error => console.error('Silme hatası:', error));

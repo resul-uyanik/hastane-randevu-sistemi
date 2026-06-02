@@ -39,6 +39,14 @@ public class AppointmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAppointment);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Appointment> updateAppointment(
+            @PathVariable Long id,
+            @Valid @RequestBody AppointmentRequest appointmentRequest) {
+        Appointment updatedAppointment = appointmentService.updateAppointment(id, appointmentRequest);
+        return ResponseEntity.ok(updatedAppointment);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
         boolean deleted = appointmentService.deleteAppointment(id);

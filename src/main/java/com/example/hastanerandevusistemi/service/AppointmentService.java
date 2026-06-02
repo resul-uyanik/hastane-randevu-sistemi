@@ -69,6 +69,39 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    @Transactional
+    public Appointment updateAppointment(Long id, AppointmentRequest request) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Randevu bulunamadı!"));
+
+        Doctor doctor = doctorRepository.findById(request.getDoctorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Doktor bulunamadı!"));
+
+        Patient patient = patientRepository.findById(request.getPatientId())
+                .orElseThrow(() -> new ResourceNotFoundException("Hasta bulunamadı!"));
+
+        LocalDateTime start = request.getAppointmentDate();
+        LocalDateTime end = start.plusMinutes(30);
+
+        if (!appointment.getDoctor().getId().equals(doctor.getId()) || !appointment.getAppointmentDate().equals(start)) {
+            boolean isOverlapping = appointmentRepository.existsByDoctorIdAndAppointmentDateBetween(
+                    doctor.getId(),
+                    start.minusMinutes(29).plusSeconds(1),
+                    end.minusSeconds(1)
+            );
+
+            if (isOverlapping) {
+                throw new AppointmentConflictException("Seçilen doktorun bu zaman diliminde zaten bir randevusu bulunuyor!");
+            }
+        }
+
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(start);
+
+        return appointmentRepository.save(appointment);
+    }
+
 
     @Transactional
     public boolean deleteAppointment(Long id) {

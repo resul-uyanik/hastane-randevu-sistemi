@@ -3,7 +3,6 @@ package com.example.hastanerandevusistemi.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -28,21 +27,31 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-
-                        .requestMatchers("/", "/view/**").hasAnyRole("USER", "ADMIN")
-
+                        .requestMatchers("/view/patients", "/view/appointments").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/", "/view/doctors", "/view/archive").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/appointments/**", "/doctors/**", "/patients/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/appointments/**", "/doctors/**", "/patients/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/doctors/**", "/patients/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/appointments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/appointments/**", "/doctors/**", "/patients/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/appointments/**", "/patients/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/patients/**", "/appointments/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/appointments/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/appointments/**", "/patients/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/doctors/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/doctors/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/doctors/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
-
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler((request, response, authentication) -> {
+                            boolean isAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+                            if (isAdmin) {
+                                response.sendRedirect("/");
+                            } else {
+                                response.sendRedirect("/view/patients");
+                            }
+                        })
                         .permitAll()
                 )
                 .build();

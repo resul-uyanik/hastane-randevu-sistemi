@@ -32,7 +32,6 @@ public class Doctor {
         this.specialty = specialty;
     }
 
-    //Getter ve Setter Metotları
     public Long getId() {
         return id;
     }

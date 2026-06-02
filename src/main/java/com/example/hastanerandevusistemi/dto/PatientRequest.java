@@ -26,7 +26,6 @@ public class PatientRequest {
         this.identityNumber = identityNumber;
     }
 
-    // Getter ve Setterlar
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
 

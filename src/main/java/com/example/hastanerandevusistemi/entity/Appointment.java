@@ -40,7 +40,6 @@ public class Appointment {
         this.completed = completed;
     }
 
-    //Getter ve Setter Metotları
     public Long getId() {
         return id;
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +10,16 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/">🏥 HRS Otomasyonu</a>
+    <a class="navbar-brand fw-bold" href="#">🏥 HRS Otomasyonu</a>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
-        <li class="nav-item"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/">Ana Sayfa</a></li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/view/doctors">Doktor Yönetimi</a></li>
+
         <li class="nav-item"><a class="nav-link" href="/view/patients">Hasta Kayıt</a></li>
         <li class="nav-item"><a class="nav-link active" href="/view/appointments">Randevular</a></li>
-        <li class="nav-item"><a class="nav-link" href="/view/archive">🗑️ Arşiv</a></li></ul>
+
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link" href="/view/archive">🗑️ Arşiv</a></li>
       </ul>
     </div>
   </div>
@@ -79,7 +81,7 @@
                 <th>👨‍⚕️ Doktor (Uzmanlık)</th>
                 <th>👥 Hasta</th>
                 <th>Durum</th>
-                <th class="text-end pe-3">İşlemler</th>
+                <th class="text-end pe-3" style="width: 25%">İşlemler</th>
               </tr>
               </thead>
               <tbody id="appointmentTableBody">
@@ -92,11 +94,44 @@
   </div>
 </div>
 
+<div class="modal fade" id="updateAppointmentModal" tabindex="-1" aria-labelledby="updateAppointmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold" id="updateAppointmentModalLabel">✏️ Randevuyu Güncelle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="updateAppointmentForm">
+          <input type="hidden" id="updateAppointmentId">
+          <div class="mb-3">
+            <label for="updateDoctorSelect" class="form-label small fw-bold">Doktor Seçimi</label>
+            <select class="form-select" id="updateDoctorSelect" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="updatePatientSelect" class="form-label small fw-bold">Hasta Seçimi</label>
+            <select class="form-select" id="updatePatientSelect" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="updateAppointmentDate" class="form-label small fw-bold">Randevu Tarihi ve Saati</label>
+            <input type="datetime-local" class="form-control" id="updateAppointmentDate" required>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-warning text-dark fw-bold">Değişiklikleri Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+  let updateAppModal;
 
   document.addEventListener("DOMContentLoaded", function() {
+      updateAppModal = new bootstrap.Modal(document.getElementById('updateAppointmentModal'));
       loadDoctorsToSelect();
       loadPatientsToSelect();
       loadAllAppointments();
@@ -106,12 +141,17 @@
       fetch('/doctors')
           .then(response => response.json())
           .then(doctors => {
-              const select = document.getElementById('doctorSelect');
+              const addSelect = document.getElementById('doctorSelect');
+              const updateSelect = document.getElementById('updateDoctorSelect');
+
+              const defaultOption = '<option value="">-- Doktor Seçiniz --</option>';
+              addSelect.innerHTML = defaultOption;
+              updateSelect.innerHTML = defaultOption;
+
               doctors.forEach(doctor => {
-                  const option = document.createElement('option');
-                  option.value = doctor.id;
-                  option.textContent = `${doctor.name} (${doctor.specialty})`;
-                  select.appendChild(option);
+                  const opt = `<option value="${doctor.id}">${doctor.name} (${doctor.specialty})</option>`;
+                  addSelect.innerHTML += opt;
+                  updateSelect.innerHTML += opt;
               });
           });
   }
@@ -120,12 +160,17 @@
       fetch('/patients')
           .then(response => response.json())
           .then(patients => {
-              const select = document.getElementById('patientSelect');
+              const addSelect = document.getElementById('patientSelect');
+              const updateSelect = document.getElementById('updatePatientSelect');
+
+              const defaultOption = '<option value="">-- Hasta Seçiniz --</option>';
+              addSelect.innerHTML = defaultOption;
+              updateSelect.innerHTML = defaultOption;
+
               patients.forEach(patient => {
-                  const option = document.createElement('option');
-                  option.value = patient.id;
-                  option.textContent = `${patient.firstName} ${patient.lastName} (TC: ${patient.identityNumber})`;
-                  select.appendChild(option);
+                  const opt = `<option value="${patient.id}">${patient.firstName} ${patient.lastName} (TC: ${patient.identityNumber})</option>`;
+                  addSelect.innerHTML += opt;
+                  updateSelect.innerHTML += opt;
               });
           });
   }
@@ -153,9 +198,16 @@
               ? '<span class="badge bg-success">Tamamlandı</span>'
               : '<span class="badge bg-warning text-dark">Aktif</span>';
 
-          const completeButton = app.completed
-              ? ''
-              : `<button class="btn btn-sm btn-outline-success me-1" onclick="completeAppointment(${app.id})">Tamamla</button>`;
+          const docId = app.doctor ? app.doctor.id : '';
+          const patId = app.patient ? app.patient.id : '';
+
+          const actionButtons = app.completed
+              ? `<button class="btn btn-sm btn-danger" onclick="deleteAppointment(${app.id})">İptal Et</button>`
+              : `
+                <button class="btn btn-sm btn-outline-success me-1" onclick="completeAppointment(${app.id})">Tamamla</button>
+                <button class="btn btn-sm btn-warning me-1" onclick="openUpdateModal(${app.id}, '${docId}', '${patId}', '${app.appointmentDate}')">Düzenle</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteAppointment(${app.id})">İptal Et</button>
+              `;
 
           const row = `
               <tr>
@@ -163,10 +215,7 @@
                   <td>${app.doctor ? app.doctor.name : 'Silinmiş Doktor'} <small class="text-muted">(${app.doctor ? app.doctor.specialty : ''})</small></td>
                   <td>${app.patient ? app.patient.firstName + ' ' + app.patient.lastName : 'Silinmiş Hasta'}</td>
                   <td>${statusBadge}</td>
-                  <td class="text-end pe-3">
-                      ${completeButton}
-                      <button class="btn btn-sm btn-danger" onclick="deleteAppointment(${app.id})">İptal Et</button>
-                  </td>
+                  <td class="text-end pe-3">${actionButtons}</td>
               </tr>
           `;
           tbody.innerHTML += row;
@@ -176,21 +225,15 @@
   document.getElementById('appointmentForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      const doctorId = document.getElementById('doctorSelect').value;
-      const patientId = document.getElementById('patientSelect').value;
-      const appointmentDate = document.getElementById('appointmentDate').value;
-
       const requestData = {
-          doctorId: parseInt(doctorId),
-          patientId: parseInt(patientId),
-          appointmentDate: appointmentDate
+          doctorId: parseInt(document.getElementById('doctorSelect').value),
+          patientId: parseInt(document.getElementById('patientSelect').value),
+          appointmentDate: document.getElementById('appointmentDate').value
       };
 
       fetch('/appointments', {
           method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestData)
       })
       .then(response => {
@@ -200,13 +243,10 @@
               loadAllAppointments();
           } else {
               return response.json().then(err => {
-                  if (err.messages && typeof err.messages === 'object') {
-                      const errorList = Object.values(err.messages).join('\n');
-                      alert('Validasyon Hatası:\n' + errorList);
-                  } else if (err.message) {
-                      alert('Hata: ' + err.message);
+                  if (err.message && err.message.includes("zaman diliminde")) {
+                      alert('Hata: Seçilen doktorun bu zaman diliminde randevusu var!');
                   } else {
-                      alert('Randevu oluşturulamadı. İşlem için yetkiniz (ADMIN) bulunmuyor olabilir!');
+                      alert('Randevu oluşturulamadı. Lütfen bilgileri kontrol edin!');
                   }
               });
           }
@@ -214,33 +254,75 @@
       .catch(error => console.error('Randevu ekleme hatası:', error));
   });
 
-  function completeAppointment(id) {
-      fetch(`/appointments/${id}/complete`, {
-          method: 'PATCH'
+  function openUpdateModal(id, doctorId, patientId, dateStr) {
+      document.getElementById('updateAppointmentId').value = id;
+      document.getElementById('updateDoctorSelect').value = doctorId;
+      document.getElementById('updatePatientSelect').value = patientId;
+
+      const formattedDate = dateStr.length > 16 ? dateStr.substring(0, 16) : dateStr;
+      document.getElementById('updateAppointmentDate').value = formattedDate;
+
+      updateAppModal.show();
+  }
+
+  document.getElementById('updateAppointmentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('updateAppointmentId').value;
+      const requestData = {
+          doctorId: parseInt(document.getElementById('updateDoctorSelect').value),
+          patientId: parseInt(document.getElementById('updatePatientSelect').value),
+          appointmentDate: document.getElementById('updateAppointmentDate').value
+      };
+
+      fetch(`/appointments/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData)
       })
+      .then(response => {
+          if (response.ok) {
+              alert('Randevu başarıyla güncellendi.');
+              updateAppModal.hide();
+
+              const filterDate = document.getElementById('filterDate').value;
+              if(filterDate) filterAppointmentsByDate(); else loadAllAppointments();
+          } else {
+              return response.json().then(err => {
+                  if (err.message && err.message.includes("zaman diliminde")) {
+                      alert('Hata: Seçilen doktorun bu zaman diliminde randevusu var!');
+                  } else {
+                      alert('Güncelleme yapılamadı. Tarihi ve kişileri kontrol edin!');
+                  }
+              });
+          }
+      })
+      .catch(error => console.error('Güncelleme hatası:', error));
+  });
+
+  function completeAppointment(id) {
+      fetch(`/appointments/${id}/complete`, { method: 'PATCH' })
       .then(response => {
           if (response.ok) {
               alert('Randevu tamamlandı olarak işaretlendi.');
               const filterDate = document.getElementById('filterDate').value;
               if(filterDate) filterAppointmentsByDate(); else loadAllAppointments();
           } else {
-              alert('Bu işlem gerçekleştirilemedi. Yetkiniz yetersiz olabilir (Sadece ADMIN yapabilir)!');
+              alert('Bu işlem gerçekleştirilemedi veya sistemde bir hata oluştu!');
           }
       });
   }
 
   function deleteAppointment(id) {
       if (confirm('Bu randevuyu iptal etmek istediğine emin misin ?')) {
-          fetch(`/appointments/${id}`, {
-              method: 'DELETE'
-          })
+          fetch(`/appointments/${id}`, { method: 'DELETE' })
           .then(response => {
               if (response.ok) {
                   alert('Randevu iptal edildi.');
                   const filterDate = document.getElementById('filterDate').value;
                   if(filterDate) filterAppointmentsByDate(); else loadAllAppointments();
               } else {
-                  alert('Randevu iptal edilemedi. Yetkiniz yetersiz olabilir (Sadece ADMIN yapabilir)!');
+                  alert('Randevu iptal edilemedi veya sistemde bir hata oluştu!');
               }
           });
       }
@@ -252,7 +334,6 @@
           alert('Lütfen bir tarih seçin!!');
           return;
       }
-
       fetch(`/appointments/date?date=${dateVal}`)
           .then(response => response.json())
           .then(appointments => renderAppointmentTable(appointments))

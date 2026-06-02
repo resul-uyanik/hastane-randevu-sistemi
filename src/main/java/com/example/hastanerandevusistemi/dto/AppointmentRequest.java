@@ -25,7 +25,6 @@ public class AppointmentRequest {
         this.appointmentDate = appointmentDate;
     }
 
-    //Getter ve Setterlar
     public Long getDoctorId() { return doctorId; }
     public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
 

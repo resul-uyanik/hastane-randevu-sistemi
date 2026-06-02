@@ -21,7 +21,6 @@ public class DoctorRequest {
         this.specialty = specialty;
     }
 
-    // Getter ve Setterlar
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
